@@ -61,7 +61,11 @@ class OurMetabox
         $location = isset($_POST['omb_location']) ? $_POST['omb_location'] : '';
         $country = isset($_POST['omb_country']) ? $_POST['omb_country'] : '';
         $is_favorite = isset($_POST['omb_is_favorite']) ? $_POST['omb_is_favorite'] : 0;
-        $colors = isset($_POST['omb_clr']) ? $_POST['omb_clr'] : array();
+        $colors_checkbox = isset($_POST['omb_clr']) ? $_POST['omb_clr'] : array();
+        $color_radio = isset($_POST['omb_color']) ? $_POST['omb_color'] : '';
+        $omb_color_dropdown = isset($_POST['omb_color_dropdown']) ? $_POST['omb_color_dropdown'] : '';
+
+        
 
         if ($location == '' || $country == '') {
             return $post_id;
@@ -73,7 +77,9 @@ class OurMetabox
         update_post_meta($post_id, 'omb_location', $location);
         update_post_meta($post_id, 'omb_country', $country);
         update_post_meta($post_id, 'omb_is_favorite', $is_favorite);
-        update_post_meta($post_id, 'omb_clr', $colors);
+        update_post_meta($post_id, 'omb_clr', $colors_checkbox);
+        update_post_meta($post_id, 'omb_color', $color_radio);
+        update_post_meta($post_id, 'omb_color_dropdown', $omb_color_dropdown);
     }
 
     public function omb_add_metabox()
@@ -97,12 +103,16 @@ class OurMetabox
         if (metadata_exists('post', $post->ID, 'omb_clr')) {
             $saved_colors = get_post_meta($post->ID, 'omb_clr', true);
         }
-        
+
+        $saved_color = get_post_meta($post->ID, 'omb_color', true); //for radio button
+        $color_for_dropdown = get_post_meta($post->ID, 'omb_color_dropdown', true); //for dropdown
 
         $label1 = __('Location', 'our-metabox');
         $label2 = __('Country', 'our-metabox');
         $label3 = __('Is Favorite', 'our-metabox');
-        $label4 = __('Colors', 'our-metabox');
+        $label4 = __('Colors Checkbox', 'our-metabox');
+        $label5 = __('Colors Radio', 'our-metabox');
+        $label6 = __('Colors Dropdown', 'our-metabox');
 
         $colors = array('red', 'green', 'blue', 'yellow', 'magenta', 'pink', 'black');
 
@@ -124,16 +134,56 @@ class OurMetabox
 EOD;
 
         foreach ($colors as $color) {
-             $_color = ucwords($color);
-             $checked = in_array($color, $saved_colors) ? 'checked' : "";
-            
+            $_color = ucwords($color);
+            $checked = in_array($color, $saved_colors) ? 'checked' : "";
+
             $metabox_html .= <<<EOD
-<label for="omb_clr_{$color}">{$_color}</label>
+<br/>
 <input type="checkbox" name="omb_clr[]" id="omb_clr_{$color}" value="{$color}" {$checked}  />
+<label for="omb_clr_{$color}">{$_color}</label>
 EOD;
         }
 
         $metabox_html .= "</p>";
+
+        $metabox_html .= <<<EOD
+        <p>
+        <label>{$label5}: </label>  
+        EOD;
+
+        foreach ($colors as $color) {
+            $_color = ucwords($color);
+            $checked = ($color == $saved_color) ? "checked='checked'" : '';
+            $metabox_html .= <<<EOD
+        <br/>
+        <input type="radio" name="omb_color" id="omb_color_{$color}" value="{$color}" {$checked}  />
+        <label for="omb_color_{$color}">{$_color}</label>
+        EOD;
+        }
+
+        $metabox_html .= "</p>";
+
+        $metabox_html .= <<<EOD
+                <p>
+                <label>{$label6}: </label>
+                <select name="omb_color_dropdown" id="omb_color_dropdown">
+                EOD;
+
+        $list_for_dropdown = $colors;
+        array_unshift($list_for_dropdown, 'select any');
+        //print_r($list_for_dropdown);
+        foreach ($list_for_dropdown as $color) {
+            $selected = ($color == $color_for_dropdown) ? "selected" : '';
+            $metabox_html .= <<<EOD
+            
+                <option value="{$color}" {$selected}>{$color}</option>
+
+
+
+                EOD;
+        }
+
+        $metabox_html .= "</select></p>";
 
         echo $metabox_html;
 
@@ -146,3 +196,12 @@ EOD;
 }
 
 new OurMetabox();
+
+/*
+<select name="cars" id="cars">
+<option value="volvo">Volvo</option>
+<option value="saab">Saab</option>
+<option value="mercedes">Mercedes</option>
+<option value="audi">Audi</option>
+</select>
+ */
