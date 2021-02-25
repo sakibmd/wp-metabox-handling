@@ -65,11 +65,9 @@ class OurMetabox
         $color_radio = isset($_POST['omb_color']) ? $_POST['omb_color'] : '';
         $omb_color_dropdown = isset($_POST['omb_color_dropdown']) ? $_POST['omb_color_dropdown'] : '';
 
-        
-
-        if ($location == '' || $country == '') {
-            return $post_id;
-        }
+        // if ($location == '' || $country == '') {
+        //     return $post_id;
+        // }
 
         $location = sanitize_text_field($location);
         $country = sanitize_text_field($country);
@@ -99,10 +97,14 @@ class OurMetabox
 
         $is_favorite = get_post_meta($post->ID, 'omb_is_favorite', true);
         $checked = $is_favorite == 1 ? 'checked' : '';
-        $saved_colors = [];
-        if (metadata_exists('post', $post->ID, 'omb_clr')) {
-            $saved_colors = get_post_meta($post->ID, 'omb_clr', true);
-        }
+
+        $saved_colors = get_post_meta($post->ID, 'omb_clr', true);
+        $saved_color = is_array($saved_colors) ? $saved_colors : array();
+
+        // $saved_colors = [];
+        // if (metadata_exists('post', $post->ID, 'omb_clr')) {
+        //     $saved_colors = get_post_meta($post->ID, 'omb_clr', true);
+        // }
 
         $saved_color = get_post_meta($post->ID, 'omb_color', true); //for radio button
         $color_for_dropdown = get_post_meta($post->ID, 'omb_color_dropdown', true); //for dropdown
@@ -120,7 +122,7 @@ class OurMetabox
         $metabox_html = <<<EOD
 <p>
 <label for="omb_location">{$label1}: </label>
-<input type="text" name="omb_location" id="omb_location" value="{$location}"/>
+<input type="text" name="omb_location" id="omb_location" value="{$location}" />
 <br/>
 <label for="omb_country">{$label2}: </label>
 <input type="text" name="omb_country" id="omb_country" value="{$country}"/>
@@ -148,7 +150,7 @@ EOD;
 
         $metabox_html .= <<<EOD
         <p>
-        <label>{$label5}: </label>  
+        <label>{$label5}: </label>
         EOD;
 
         foreach ($colors as $color) {
@@ -175,7 +177,7 @@ EOD;
         foreach ($list_for_dropdown as $color) {
             $selected = ($color == $color_for_dropdown) ? "selected" : '';
             $metabox_html .= <<<EOD
-            
+
                 <option value="{$color}" {$selected}>{$color}</option>
 
 
