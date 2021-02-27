@@ -22,6 +22,13 @@ class OurMetabox
         add_action('plugins_loaded', array($this, 'omb_load_textdomain'));
         add_action('admin_menu', array($this, 'omb_add_metabox'));
         add_action('save_post', array($this, 'omb_save_metabox'));
+        add_filter('the_content', array($this, 'omb_adding_metabox_field' ));
+    }
+
+    function omb_adding_metabox_field($content){
+        $location=get_post_meta(get_the_ID(),'omb_location',true);
+        $content .= "<strong>Location:</strong> " .$location;
+        return $content;
     }
 
     private function is_secured($nonce_field, $action, $post_id)
@@ -86,7 +93,7 @@ class OurMetabox
             'omb_post_location',
             __('Location Info', 'our-metabox'),
             array($this, 'omb_display_metabox'),
-            array('post', 'page')
+            'post',
         );
     }
 
@@ -99,7 +106,7 @@ class OurMetabox
         $checked = $is_favorite == 1 ? 'checked' : '';
 
         $saved_colors = get_post_meta($post->ID, 'omb_clr', true);
-        $saved_color = is_array($saved_colors) ? $saved_colors : array();
+        $saved_colors = is_array($saved_colors) ? $saved_colors : array();
 
         // $saved_colors = [];
         // if (metadata_exists('post', $post->ID, 'omb_clr')) {
