@@ -22,23 +22,23 @@ class OurMetabox
         add_action('plugins_loaded', array($this, 'omb_load_textdomain'));
         add_action('admin_menu', array($this, 'omb_add_metabox'));
         add_action('save_post', array($this, 'omb_save_metabox'));
-        add_filter('the_content', array($this, 'omb_adding_metabox_field' ));
+        add_filter('the_content', array($this, 'omb_show_adding_metabox_value_with_content' ));
     }
 
-    function omb_adding_metabox_field($content){
+    function omb_show_adding_metabox_value_with_content($content){
         $location=get_post_meta(get_the_ID(),'omb_location',true);
         $content .= "<strong>Location:</strong> " .$location;
         return $content;
     }
 
-    private function is_secured($nonce_field, $action, $post_id)
+    private function is_secured($nonce_field_name, $action, $post_id)
     {
-        $nonce = isset($_POST[$nonce_field]) ? $_POST[$nonce_field] : '';
+        $nonce_value = isset($_POST[$nonce_field_name]) ? $_POST[$nonce_field_name] : '';
 
-        if ($nonce == '') {
+        if ($nonce_value == '') {
             return false;
         }
-        if (!wp_verify_nonce($nonce, $action)) {
+        if (!wp_verify_nonce($nonce_value, $action)) {
             return false;
         }
 
@@ -61,7 +61,7 @@ class OurMetabox
     public function omb_save_metabox($post_id)
     {
 
-        if (!$this->is_secured('omb_location_field', 'omb_location', $post_id)) {
+        if (!$this->is_secured('omb_nonce_field_name', 'omb_nonce_action', $post_id)) {
             return $post_id;
         }
 
@@ -79,21 +79,23 @@ class OurMetabox
         $location = sanitize_text_field($location);
         $country = sanitize_text_field($country);
 
+
         update_post_meta($post_id, 'omb_location', $location);
         update_post_meta($post_id, 'omb_country', $country);
         update_post_meta($post_id, 'omb_is_favorite', $is_favorite);
         update_post_meta($post_id, 'omb_clr', $colors_checkbox);
         update_post_meta($post_id, 'omb_color', $color_radio);
         update_post_meta($post_id, 'omb_color_dropdown', $omb_color_dropdown);
+
     }
 
     public function omb_add_metabox()
     {
         add_meta_box(
-            'omb_post_location',
-            __('Location Info', 'our-metabox'),
-            array($this, 'omb_display_metabox'),
-            'post',
+            'omb_post_location', //id
+            __('Location Info', 'our-metabox'), //title
+            array($this, 'omb_display_metabox'), //display function
+            'post', //screen
         );
     }
 
@@ -125,7 +127,7 @@ class OurMetabox
 
         $colors = array('red', 'green', 'blue', 'yellow', 'magenta', 'pink', 'black');
 
-        wp_nonce_field('omb_location', 'omb_location_field'); //action, name
+        wp_nonce_field('omb_nonce_action', 'omb_nonce_field_name'); //action, name
         $metabox_html = <<<EOD
 <p>
 <label for="omb_location">{$label1}: </label>
