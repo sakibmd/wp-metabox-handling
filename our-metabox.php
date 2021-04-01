@@ -22,12 +22,36 @@ class OurMetabox
         add_action('plugins_loaded', array($this, 'omb_load_textdomain'));
         add_action('admin_menu', array($this, 'omb_add_metabox'));
         add_action('save_post', array($this, 'omb_save_metabox'));
-        add_filter('the_content', array($this, 'omb_show_adding_metabox_value_with_content' ));
+        add_filter('the_content', array($this, 'omb_show_adding_metabox_value_with_content'));
+        add_filter('user_contactmethods', array($this, 'omb_user_contact_methods')); //add additional into to user profile
     }
 
-    function omb_show_adding_metabox_value_with_content($content){
-        $location=get_post_meta(get_the_ID(),'omb_location',true);
-        $content .= "<strong>Location:</strong> " .$location;
+    public function omb_user_contact_methods($methods)
+    {
+        $methods['facebook'] = __('Facebook', 'our-metabox');
+        return $methods;
+    }
+
+    public function omb_show_adding_metabox_value_with_content($content)
+    {
+        $location = get_post_meta(get_the_ID(), 'omb_location', true);
+        $country = get_post_meta(get_the_ID(), 'omb_country', true);
+        $checkbox_output = get_post_meta(get_the_ID(), 'omb_clr', true);
+        $radio_output = get_post_meta(get_the_ID(), 'omb_color', true);
+        $dropdown_output = get_post_meta(get_the_ID(), 'omb_color_dropdown', true);
+
+        $checkbox_output_result = is_array($checkbox_output) ? $checkbox_output : array();
+
+        $fblink = esc_url(get_the_author_meta('facebook'));
+        $content .= "<br>Author Facebook Link: " . $fblink;
+
+        if ($location == '' && $country == '' && $checkbox_output_result == array() && $radio_output == '' && $dropdown_output == 'select any') {
+            return $content;
+        }
+
+        $output = "<br><strong>Location:</strong> " . $location . "<br><strong>Country:</strong> " . $country;
+        $content .= $output;
+
         return $content;
     }
 
@@ -79,7 +103,6 @@ class OurMetabox
         $location = sanitize_text_field($location);
         $country = sanitize_text_field($country);
 
-
         update_post_meta($post_id, 'omb_location', $location);
         update_post_meta($post_id, 'omb_country', $country);
         update_post_meta($post_id, 'omb_is_favorite', $is_favorite);
@@ -95,7 +118,7 @@ class OurMetabox
             'omb_post_location', //id
             __('Location Info', 'our-metabox'), //title
             array($this, 'omb_display_metabox'), //display function
-            'post', //screen
+            'post' //array('post', 'page'),
         );
     }
 
